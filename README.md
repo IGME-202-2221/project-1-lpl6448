@@ -4,8 +4,8 @@
 
 ### Student Info
 
--   Name: YOUR NAME
--   Section: ##
+-   Name: Luke Lepkowski (lpl6448@rit.edu)
+-   Section: 04
 
 ## Game Design
 
