@@ -22,20 +22,20 @@ _A brief explanation of your game. Inculde what is the objective for the player.
 ### Controls
 
 -   Movement
-    -   Up: 
-    -   Down: 
-    -   Left: 
-    -   Right: 
--   Fire: 
+    -   Accelerate: W / Up Arrow
+    -   Break: S / Down Arrow
+    -   Left: A / Left Arrow
+    -   Right: D / Right Arrow
+-   Fire: Space
 
-## You Additions
+## Make It Your Own
 
-_List out what you added to your game to make it different for you_
+-   Spaceships move around the screen using more advanced physics (including acceleration, drag, etc.).
+-   There will be multiple levels, each with enemies and some kind of target the player must destroy in order to progress.
 
 ## Sources
 
--   _List all project sources here –models, textures, sound clips, assets, etc._
--   _If an asset is from the Unity store, include a link to the page and the author’s name_
+-   Currently, all assets in the game are created by me.
 
 ## Known Issues
 
