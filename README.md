@@ -31,7 +31,7 @@ _A brief explanation of your game. Inculde what is the objective for the player.
 ## Make It Your Own
 
 -   Spaceships move around the screen using more advanced physics (including acceleration, drag, etc.).
--   There will be multiple levels, each with enemies and some kind of target the player must destroy in order to progress.
+-   There will be multiple levels, each with enemies and some kind of target the player must destroy in order to progress. (This means that the camera might follow the player around the map--I'm assuming that's okay, but if that doesn't count as a SHMUP I can change it.)
 
 ## Sources
 
