@@ -1,4 +1,4 @@
-# Project PROJECT_NAME
+# Project Shield Shooters
 
 [Markdown Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Here-Cheatsheet)
 
@@ -9,24 +9,24 @@
 
 ## Game Design
 
--   Camera Orientation: _How are the art assets viewed from? (ie. topdown or side)_
--   Camera Movement: _How does the camera move in your game? (if at all)_
--   Player Health: _How are you handling player health? (healthbar, lives, ?)_
--   End Condition: _How does a game/round/level end?_
--   Scoring: _How does the player earn points in your game?_
+-   Camera Orientation: Topdown
+-   Camera Movement: The camera is fixed for the most part but can vertically follow the player as a transition between levels. This also means that the player "bounces off" the edges of the screen.
+-   Player Health: Healthbar
+-   End Condition: The level ends when the player destroys the two shield stations (removing the barrier) and moves to the next level. The game ends once the player has made it past all of the enemy shields.
+-   Scoring: The player earns a certain number of points for destroying each type of enemy.
 
 ### Game Description
 
-_A brief explanation of your game. Inculde what is the objective for the player. Think about what would go on the back of a game box._
+After waking up to find you and your spaceship trapped in a bizarre alien prison, the only way out now is to fight. Shoot at enemy ships, dodge bullets and lasers, and destroy the shield stations keeping you trapped as you progress toward the freedom of open space.
 
 ### Controls
 
 -   Movement
     -   Accelerate: W / Up Arrow
-    -   Break: S / Down Arrow
+    -   Brake: S / Down Arrow
     -   Left: A / Left Arrow
     -   Right: D / Right Arrow
--   Fire: Space
+-   Shoot: Space
 
 ## Make It Your Own
 
@@ -39,9 +39,9 @@ _A brief explanation of your game. Inculde what is the objective for the player.
 
 ## Known Issues
 
-_List any errors, lack of error checking, or specific information that I need to know to run your program_
+
 
 ### Requirements not completed
 
-_If you did not complete a project requirement, notate that here_
+
 
