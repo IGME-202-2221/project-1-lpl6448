@@ -179,6 +179,17 @@
                 },
                 {
                     "name": "",
+                    "id": "a721eefc-6af3-4799-8bbd-4731e36c7539",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Shoot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "15bfc085-29ca-4daa-97a9-44900c36d22f",
                     "path": "<Gamepad>/buttonSouth",
                     "interactions": "",

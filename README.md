@@ -19,14 +19,19 @@
 
 After waking up to find you and your spaceship trapped in a bizarre alien prison, the only way out now is to fight. Shoot at enemy ships, dodge bullets and lasers, and destroy the shield stations keeping you trapped as you progress toward the freedom of open space.
 
+### Enemy Types
+-   Enforcer: a skittish robot ship that often prefers to shoot from a distance
+-   Boulder (not implemented yet): a sentient space boulder that occasionally shoots out shards in different directions
+
 ### Controls
 
 -   Movement
     -   Accelerate: W / Up Arrow
-    -   Brake: S / Down Arrow
+    -   Brake: S / Down Arrow (Holding down Brake while turning spins the ship much faster.)
     -   Left: A / Left Arrow
     -   Right: D / Right Arrow
--   Shoot: Space
+-   Shoot: Space / Left Mouse
+    - Hold OR click rapidly to shoot slightly faster
 
 ## Make It Your Own
 
@@ -39,9 +44,7 @@ After waking up to find you and your spaceship trapped in a bizarre alien prison
 
 ## Known Issues
 
-
+-   While health is currently mentioned in the code and there are damage effects, health is not fully implemented yet.
 
 ### Requirements not completed
-
-
 

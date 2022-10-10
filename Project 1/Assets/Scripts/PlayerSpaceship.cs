@@ -2,15 +2,15 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Controller script for a player's spaceship, which uses player input to move the spaceship around
-/// the screen using a basic physics simulation.
+/// Controller script for a player's spaceship, which uses player input to move the spaceship and shoot.
 /// Author: Luke Lepkowski (lpl6448@rit.edu)
 /// </summary>
-public class PlayerSpaceship : MonoBehaviour
+public class PlayerSpaceship : Spaceship
 {
     /// <summary>
     /// The ship's forward acceleration (units/s^2)
     /// </summary>
+    [Header("Physics")]
     public float acceleration;
 
     /// <summary>
@@ -34,44 +34,84 @@ public class PlayerSpaceship : MonoBehaviour
     public float angularDrag;
 
     /// <summary>
-    /// When breaking, the damper put on the ship
+    /// When braking, the damper put on the ship's velocity
     /// </summary>
-    public float breakDamper;
+    public float brakeDamper;
 
     /// <summary>
-    /// When breaking, the amount of deceleration of the ship (units/s^2)
+    /// When braking, the amount of deceleration of the ship (units/s^2)
     /// </summary>
-    public float breakDeceleration;
+    public float brakeDeceleration;
 
     /// <summary>
-    /// When breaking, the max speed at which the ship's velocity will align itself with the forward direction (degrees/s^2)
+    /// When braking, the max speed at which the ship's velocity will align itself with the forward direction (degrees/s^2)
     /// </summary>
-    public float breakingTurnToVelocity;
+    public float brakingTurnToVelocity;
 
     /// <summary>
-    /// When breaking, the added angular acceleration that the ship can turn at (degrees/s^2)
+    /// When braking, the added angular acceleration that the ship can turn at (degrees/s^2)
     /// </summary>
-    public float breakingTurnAcceleration;
+    public float brakingTurnAcceleration;
 
     /// <summary>
-    /// Raw input for whether the player is applying the break
+    /// Bounce coefficient that velocity is multiplied by when a collision with a map wall occurs
     /// </summary>
-    private bool breakingInput;
+    public float wallBounceCoefficient;
+
+    /// <summary>
+    /// Prefab of the bullet to instantiate when this ship shoots
+    /// </summary>
+    [Header("Shooting")]
+    public Bullet bulletPrefab;
+
+    /// <summary>
+    /// Array containing Transforms (used for initial positions and rotations of bullets)
+    /// A bullet is instantiated using each Transform (meaning that multiple bullets may be shot at once)
+    /// </summary>
+    public Transform[] bulletSpawnPoints;
+
+    /// <summary>
+    /// The maximum rate that bullets can be shot at if the player is rapidly clicking or tapping space
+    /// </summary>
+    public float clickShootRate;
+
+    /// <summary>
+    /// The rate that bullets are shot at if the player is holding left mouse button or space
+    /// </summary>
+    public float holdShootRate;
+
+    /// <summary>
+    /// Backwards impulse given to this Spaceship whenever bullet are shot
+    /// </summary>
+    public float shootRecoil;
+
+    /// <summary>
+    /// Raw input for whether the player is applying the brake
+    /// </summary>
+    private bool rawBrakingInput;
 
     /// <summary>
     /// Vector2 representing the raw movement input from the player
     /// </summary>
-    private Vector2 movementInput;
+    private Vector2 rawMovementInput;
 
     /// <summary>
-    /// Current velocity (units/s) of the ship
+    /// Whether this ship is current shooting or not (whether the player is holding the shoot button)
     /// </summary>
-    private Vector2 velocity;
+    private bool shooting;
 
     /// <summary>
-    /// Current angular velocity (degrees/s) of the ship
+    /// In-game time of the last shot taken from this ship, used for regulating shoot rates
     /// </summary>
-    private float angularVelocity;
+    private float lastShootTime = -1;
+
+    /// <summary>
+    /// When the game starts, add this spaceship to the physics simulation
+    /// </summary>
+    private void Start()
+    {
+        physicsWorld.AddObject(this);
+    }
 
     /// <summary>
     /// The Update function runs a physics simulation, taking into account user input to move
@@ -79,62 +119,55 @@ public class PlayerSpaceship : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        bool isBreaking = movementInput.y < -0.5f || breakingInput;
+        UpdateFlashes();
+
+        // If stunned, ignore any player input
+        Vector2 currentMovementInput = !stunned ? rawMovementInput : Vector2.zero;
+        bool currentBrakingInput = !stunned ? rawBrakingInput : false;
+
+        // If the player is pressing a brake key AND the ship is moving forward, brake
+        currentBrakingInput = currentBrakingInput || currentMovementInput.y < -0.5f;
+        bool isBraking = Vector2.Dot(transform.up, velocity) > 0 && currentBrakingInput;
+        bool isAccelerating = !currentBrakingInput && currentMovementInput.sqrMagnitude > 0;
 
         // Angularly accelerate or decelerate the ship
-        angularVelocity += baseTurnAcceleration * -movementInput.x * Time.deltaTime;
-        if (isBreaking)
+        angularVelocity += baseTurnAcceleration * -currentMovementInput.x * Time.deltaTime;
+        if (isBraking)
         {
-            angularVelocity += breakingTurnAcceleration * velocity.magnitude * -movementInput.x * Time.deltaTime;
+            angularVelocity += brakingTurnAcceleration * velocity.magnitude * -currentMovementInput.x * Time.deltaTime;
         }
 
         // Apply angular drag
         angularVelocity *= Mathf.Clamp01(1 - Mathf.Abs(angularVelocity) * angularDrag * Time.deltaTime);
 
-        // Turn the ship
-        transform.Rotate(0, 0, angularVelocity * Time.deltaTime);
-
-        // Accelerate or break the ship
-        if (!isBreaking)
+        // Accelerate or brake the ship
+        if (isAccelerating)
         {
-            velocity += (Vector2)transform.up * movementInput.y * acceleration * Time.deltaTime;
+            velocity += (Vector2)transform.up * currentMovementInput.y * acceleration * Time.deltaTime;
             if (velocity.sqrMagnitude > 0.01f)
             {
                 MoveVelocityTowardDirection(baseTurnToVelocity * velocity.magnitude * Time.deltaTime);
             }
         }
-        else
+        else if (isBraking)
         {
             if (velocity.sqrMagnitude > 0.01f)
             {
-                velocity *= Mathf.Clamp01(1 - breakDamper * Time.deltaTime - breakDeceleration / velocity.magnitude * Time.deltaTime);
+                velocity *= Mathf.Clamp01(1 - brakeDamper * Time.deltaTime - brakeDeceleration / velocity.magnitude * Time.deltaTime);
             }
-            MoveVelocityTowardDirection(breakingTurnToVelocity * Time.deltaTime);
+            MoveVelocityTowardDirection(brakingTurnToVelocity * Time.deltaTime);
         }
 
         // Apply drag
         velocity *= Mathf.Clamp01(1 - velocity.magnitude * drag * Time.deltaTime);
 
-        // Move the ship
-        transform.position += (Vector3)velocity * Time.deltaTime;
+        // Perform a physics tick using the new velocities
+        PhysicsTick(Time.deltaTime);
 
-        // Move the camera if the ship has left the screen (this may be replaced later by collision or a following camera)
-        Bounds mapBounds = GetMapBounds();
-        if (transform.position.x < mapBounds.min.x)
+        // Shoot if necessary
+        if (!stunned && shooting && Time.time - lastShootTime >= 1 / holdShootRate)
         {
-            Camera.main.transform.position -= Vector3.right * mapBounds.size.x;
-        }
-        else if (transform.position.x >= mapBounds.max.x)
-        {
-            Camera.main.transform.position -= Vector3.left * mapBounds.size.x;
-        }
-        if (transform.position.y < mapBounds.min.y)
-        {
-            Camera.main.transform.position -= Vector3.up * mapBounds.size.y;
-        }
-        else if (transform.position.y >= mapBounds.max.y)
-        {
-            Camera.main.transform.position -= Vector3.down * mapBounds.size.y;
+            Shoot();
         }
     }
 
@@ -157,13 +190,57 @@ public class PlayerSpaceship : MonoBehaviour
     }
 
     /// <summary>
-    /// Computes the boundaries of the map, in world space
+    /// Shoots bullets by instantiating a bullet at each Transform in bulletSpawnPoints
     /// </summary>
-    /// <returns>Bounds object representing the bounds of the screen, in world space</returns>
-    private Bounds GetMapBounds()
+    private void Shoot()
     {
-        float verticalSize = Camera.main.orthographicSize * 2;
-        return new Bounds(Camera.main.transform.position, new Vector3(verticalSize * Screen.width / Screen.height, verticalSize));
+        // Instantiate bullets
+        foreach (Transform spawnPoint in bulletSpawnPoints)
+        {
+            Bullet bullet = Instantiate(bulletPrefab, spawnPoint.position, spawnPoint.rotation);
+            bullet.Origin = this;
+            physicsWorld.AddObject(bullet);
+        }
+
+        // Recoil
+        velocity -= (Vector2)transform.up * shootRecoil;
+
+        lastShootTime = Time.time;
+    }
+
+    /// <summary>
+    /// Called by the PhysicsWorld whenever this object collides with the map boundaries, causing this ship to bounce
+    /// </summary>
+    /// <param name="point">World-space point on this object's collider circle where a collision was detected</param>
+    /// <param name="normal">World-space normal of the collision (out from the point on this object's collider circle)</param>
+    public override void OnWallCollision(Vector2 point, Vector2 normal)
+    {
+        // If the ship is outside the bounds and is moving back toward the game area, we don't need to teleport it
+        if (Vector2.Dot(velocity, normal) < 0)
+        {
+            // Correct the ship's position to the edge of the wall
+            transform.position = (Vector3)(point + normal * worldCircleRadius - worldCircleCenter) + transform.position;
+
+            // Bounce the ship off the wall
+            velocity = Vector2.Reflect(velocity, -normal);
+            float speedRelativeToNormal = -Vector2.Dot(velocity, normal);
+            velocity += normal * speedRelativeToNormal * (1 - wallBounceCoefficient);
+        }
+    }
+
+    /// <summary>
+    /// Called by the PhysicsWorld whenever this object collides with another PhysicsObject.
+    /// A response only occurs if this ship collides with an EnemySpaceship, temporarily stunning this ship.
+    /// </summary>
+    /// <param name="otherObj">PhysicsObject that this object collided with</param>
+    /// <param name="point">World-space point on this object's collider circle where a collision was detected</param>
+    /// <param name="normal">World-space normal of the collision (out from the point on this object's collider circle)</param>
+    public override void OnObjectCollision(PhysicsObject otherObj, Vector2 point, Vector2 normal)
+    {
+        if (otherObj is EnemySpaceship)
+        {
+            StunFromCollision(normal);
+        }
     }
 
     /// <summary>
@@ -172,15 +249,36 @@ public class PlayerSpaceship : MonoBehaviour
     /// <param name="context">CallbackContext representing the move action (Vector2)</param>
     public void OnMove(InputAction.CallbackContext context)
     {
-        movementInput = context.ReadValue<Vector2>();
+        rawMovementInput = context.ReadValue<Vector2>();
     }
 
     /// <summary>
-    /// Called by a PlayerInput component to update whether the player is applying the breaks
+    /// Called by a PlayerInput component to update whether the player is applying the brakes
     /// </summary>
-    /// <param name="context">CallbackContext representing the break action (float)</param>
-    public void OnBreak(InputAction.CallbackContext context)
+    /// <param name="context">CallbackContext representing the brake action (float)</param>
+    public void OnBrake(InputAction.CallbackContext context)
     {
-        breakingInput = context.ReadValue<float>() > 0;
+        rawBrakingInput = context.ReadValue<float>() > 0;
+    }
+
+    /// <summary>
+    /// Called by a PlayerInput component to update whether the player is shooting, possibly causing the
+    /// ship to shoot and updating the shooting field
+    /// </summary>
+    /// <param name="context">CallbackContext representing the shoot action</param>
+    public void OnShoot(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            shooting = true;
+            if (!stunned && Time.time - lastShootTime >= 1 / clickShootRate)
+            {
+                Shoot();
+            }
+        }
+        else if (context.canceled)
+        {
+            shooting = false;
+        }
     }
 }
