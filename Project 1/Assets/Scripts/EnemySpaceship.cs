@@ -2,16 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 
+// Comments
+
 /// <summary>
 /// Controller script for an enemy spaceship, which uses an AI to move the spaceship and shoot at a target.
 /// Author: Luke Lepkowski (lpl6448@rit.edu)
 /// </summary>
 public class EnemySpaceship : Spaceship
 {
+    public CircularHealthBar healthBar;
+
     /// <summary>
     /// Transform that this ship will follow and shoot at
     /// </summary>
-    public Transform Target;
+    public Transform target;
 
     /// <summary>
     /// The ship's forward acceleration (units/s^2)
@@ -133,11 +137,18 @@ public class EnemySpaceship : Spaceship
     private float lastModeChange;
 
     /// <summary>
-    /// When the game starts, add this spaceship to the physics simulation
+    /// When the game starts, add this spaceship to the game world's list of enemies and to the collision world
     /// </summary>
     private void Start()
     {
-        physicsWorld.AddObject(this);
+        gameManager.enemiesInWave.Add(this);
+        gameManager.physicsWorld.AddObject(this);
+    }
+
+    private void OnDestroy()
+    {
+        gameManager.enemiesInWave.Remove(this);
+        gameManager.physicsWorld.RemoveObject(this);
     }
 
     /// <summary>
@@ -147,9 +158,10 @@ public class EnemySpaceship : Spaceship
     private void Update()
     {
         UpdateFlashes();
+        healthBar.fillAmount = health / maxHealth;
 
         // Compute relevant information for the Target of this ship
-        Vector2 targetOffset = Target.position - transform.position;
+        Vector2 targetOffset = target.position - transform.position;
         float targetDis = targetOffset.magnitude;
         Vector2 targetDir = targetOffset / targetDis;
         float targetTurn = Vector2.SignedAngle(transform.up, targetDir);
@@ -208,7 +220,7 @@ public class EnemySpaceship : Spaceship
         PhysicsTick(Time.deltaTime);
 
         // Random chance of performing a shooting burst
-        if (!isShootingBurst && Vector2.Dot(transform.up, targetDir) > 0.8f)
+        if (!stunned && !isShootingBurst && Vector2.Dot(transform.up, targetDir) > 0.8f)
         {
             float shootBurstChancePerSecond = isChasing ? chaseShootBurstChancePerSecond : fleeShootBurstChancePerSecond;
             float shootBurstChancePerFrame = 1 - Mathf.Pow(1 - shootBurstChancePerSecond, Time.deltaTime);
@@ -299,9 +311,14 @@ public class EnemySpaceship : Spaceship
     /// <param name="normal">World-space normal of the collision (out from the point on this object's collider circle)</param>
     public override void OnObjectCollision(PhysicsObject otherObj, Vector2 point, Vector2 normal)
     {
-        if (otherObj is PlayerSpaceship)
+        if (otherObj is PlayerSpaceship || otherObj is ShieldController)
         {
             StunFromCollision(normal);
         }
+    }
+
+    protected override void Death()
+    {
+        Destroy(gameObject);
     }
 }

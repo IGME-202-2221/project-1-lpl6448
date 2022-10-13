@@ -103,6 +103,7 @@ MonoBehaviour:
   circleRadius: 0.0625
   velocity: {x: 0, y: 0}
   angularVelocity: 0
+  hitDamage: 1
   hitStunTime: 0.5
   hitImpulse: 3
   speed: 18

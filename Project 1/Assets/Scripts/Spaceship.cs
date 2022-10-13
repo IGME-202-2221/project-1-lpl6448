@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+// Comments
+
 /// <summary>
 /// Superclass for all spaceships in the game, containing common information such as
 /// health, stun information and effects, and damage effects.
@@ -11,6 +13,8 @@
 /// </summary>
 public class Spaceship : PhysicsObject
 {
+    public GameManager gameManager;
+
     /// <summary>
     /// Initial and maximum health of this ship
     /// </summary>
@@ -112,11 +116,18 @@ public class Spaceship : PhysicsObject
     public void Damage(float damage)
     {
         health -= damage;
+        if (health <= 0)
+        {
+            health = 0;
+            Death();
+        }
 
         damageParticles.Play();
         damageFlash.SetActive(true);
         damageFlashEndTime = Time.time + damageFlashDuration;
     }
+
+    protected virtual void Death() { }
 
     /// <summary>
     /// Attempts to stun this ship and applies the collision stun impulses

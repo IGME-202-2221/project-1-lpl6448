@@ -94,6 +94,13 @@ public class Bullet : PhysicsObject
 
                 Destroy(gameObject);
             }
+            else if (otherObj is ShieldController)
+            {
+                ShieldController shieldController = otherObj as ShieldController;
+                shieldController.Damage(hitDamage);
+
+                Destroy(gameObject);
+            }
             else
             {
                 Explode(point);
