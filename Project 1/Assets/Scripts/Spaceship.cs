@@ -36,6 +36,10 @@ public class Spaceship : PhysicsObject
 
     public GameObject shipExplode;
 
+    public bool canHaveImpulse = true;
+
+    public bool canBeStunned = true;
+
     /// <summary>
     /// Minimum time (in seconds) that this ship is invulnerable to being stunned after the previous stun wears off
     /// </summary>
@@ -103,9 +107,9 @@ public class Spaceship : PhysicsObject
     /// </summary>
     /// <param name="seconds">Number of seconds to stun this ship for</param>
     /// <returns>Whether this ship was successfully stunned or not</returns>
-    public bool Stun(float seconds)
+    public virtual bool Stun(float seconds)
     {
-        if (!stunned && seconds > 0 && Time.time - stunEndTime >= stunCooldown)
+        if (canBeStunned && !stunned && seconds > 0 && Time.time - stunEndTime >= stunCooldown)
         {
             stunned = true;
             stunStartTime = Time.time;
@@ -119,12 +123,20 @@ public class Spaceship : PhysicsObject
         }
     }
 
+    public virtual void Impulse(Vector2 impulse)
+    {
+        if (canHaveImpulse)
+        {
+            velocity += impulse;
+        }
+    }
+
     /// <summary>
     /// Damages this ship by the indicated amount of damage, playing the damageParticles and activating the damageFlash
     /// </summary>
     /// <param name="damage">Amount of damage that will be subtracted from this ship's health</param>
     /// <returns>Amount of damage done to the ship</returns>
-    public float Damage(float damage)
+    public virtual float Damage(float damage)
     {
         float oldHealth = health;
 
@@ -154,6 +166,7 @@ public class Spaceship : PhysicsObject
 
     private IEnumerator DeathAnimation()
     {
+        Vector3 startScale = transform.localScale;
         float startTime = Time.time;
         float duration = 0.6f;
         while (Time.time - startTime < duration)
@@ -162,7 +175,7 @@ public class Spaceship : PhysicsObject
             // Adapted from https://easings.net/#easeInBack
             float st = 1 - (4 * t * t * t - 3 * t * t);
 
-            transform.localScale = Vector3.one * st;
+            transform.localScale = startScale * st;
             yield return null;
         }
 
@@ -184,7 +197,7 @@ public class Spaceship : PhysicsObject
     {
         if (Stun(shipCollisionStunTime))
         {
-            velocity = -normal * shipCollisionStunImpulse;
+            Impulse(-normal * shipCollisionStunImpulse);
             angularVelocity = Random.Range(-1f, 1f) * shipCollisionStunAngularImpulse;
         }
     }

@@ -66,11 +66,7 @@ public class SpawnDoor : MonoBehaviour
         // Wait for last ship to go through door before closing
         yield return new WaitForSeconds(holdSeconds);
 
-        // Add the ships to the collision simulation and close the door
-        foreach (EnemySpaceship enemy in enemies)
-        {
-            //world.AddObject(enemy);
-        }
+        // Close the door
         yield return AnimatePosition(false);
     }
 

@@ -83,14 +83,14 @@ public class Bullet : PhysicsObject
     {
         // Collision layers are used here to define which spaceships each bullet can hit
         // (set in the Inspector for each Bullet and Spaceship prefab)
-        if (otherObj.collisionLayer == collisionLayer || otherObj is Bullet)
+        if (otherObj.collisionLayer == collisionLayer)
         {
             if (otherObj is Spaceship && otherObj != Origin)
             {
                 Spaceship spaceship = otherObj as Spaceship;
                 spaceship.Damage(hitDamage);
                 spaceship.Stun(hitStunTime);
-                spaceship.velocity += velocity.normalized * hitImpulse;
+                spaceship.Impulse(velocity.normalized * hitImpulse);
 
                 Destroy(gameObject);
             }
@@ -104,10 +104,14 @@ public class Bullet : PhysicsObject
                     Destroy(gameObject);
                 }
             }
-            else
+            else if (!(otherObj is Bullet))
             {
                 Explode(point);
             }
+        }
+        else if (otherObj is Bullet && (otherObj as Bullet).Origin != Origin)
+        {
+            Explode(point);
         }
     }
 
