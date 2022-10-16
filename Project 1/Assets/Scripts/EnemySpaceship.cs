@@ -141,13 +141,13 @@ public class EnemySpaceship : Spaceship
     /// </summary>
     private void Start()
     {
-        gameManager.enemiesInWave.Add(this);
+        gameManager.AddEnemy(this);
         gameManager.physicsWorld.AddObject(this);
     }
 
     private void OnDestroy()
     {
-        gameManager.enemiesInWave.Remove(this);
+        gameManager.RemoveEnemy(this);
         gameManager.physicsWorld.RemoveObject(this);
     }
 
@@ -160,54 +160,79 @@ public class EnemySpaceship : Spaceship
         UpdateFlashes();
         healthBar.fillAmount = health / maxHealth;
 
-        // Compute relevant information for the Target of this ship
-        Vector2 targetOffset = target.position - transform.position;
-        float targetDis = targetOffset.magnitude;
-        Vector2 targetDir = targetOffset / targetDis;
-        float targetTurn = Vector2.SignedAngle(transform.up, targetDir);
-
-        // When the ship is shooting or stunned, it loses control of acceleration and turning
-        if (!isShootingBurst && !stunned)
+        if (target != null)
         {
-            if (isChasing)
+            // Compute relevant information for the Target of this ship
+            Vector2 targetOffset = target.position - transform.position;
+            float targetDis = targetOffset.magnitude;
+            Vector2 targetDir = targetOffset / targetDis;
+            float targetTurn = Vector2.SignedAngle(transform.up, targetDir);
+
+            // When the ship is shooting or stunned, it loses control of acceleration and turning
+            if (!isShootingBurst && !stunned && !dead)
             {
-                // If it is chasing the player, accelerate toward the player and brake once it gets too close
-                if (targetDis < chaseBrakeDistance)
+                if (isChasing)
                 {
-                    if (velocity.sqrMagnitude > 0.01f)
+                    // If it is chasing the player, accelerate toward the player and brake once it gets too close
+                    if (targetDis < chaseBrakeDistance)
                     {
-                        velocity *= Mathf.Clamp01(1 - brakeDamper * Time.deltaTime - brakeDeceleration / velocity.magnitude * Time.deltaTime);
+                        if (velocity.sqrMagnitude > 0.01f)
+                        {
+                            velocity *= Mathf.Clamp01(1 - brakeDamper * Time.deltaTime - brakeDeceleration / velocity.magnitude * Time.deltaTime);
+                        }
+                    }
+                    else
+                    {
+                        velocity += (Vector2)transform.up * acceleration * Time.deltaTime;
                     }
                 }
                 else
                 {
-                    velocity += (Vector2)transform.up * acceleration * Time.deltaTime;
+                    // If fleeing from the player, accelerate or brake as needed to remain between the flee min and max distances
+                    if (targetDis > fleeMinBrakeDistance && targetDis < fleeMaxBrakeDistance)
+                    {
+                        if (velocity.sqrMagnitude > 0.01f)
+                        {
+                            velocity *= Mathf.Clamp01(1 - brakeDamper * Time.deltaTime - brakeDeceleration / velocity.magnitude * Time.deltaTime);
+                        }
+                    }
+                    else
+                    {
+                        velocity += (Vector2)transform.up * acceleration * Time.deltaTime;
+
+                        // Turn away from the target if the ship is too close
+                        if (targetDis < fleeMinBrakeDistance)
+                        {
+                            targetTurn *= -1;
+                        }
+                    }
                 }
+
+                // Angularly accelerate or decelerate the ship
+                angularVelocity += angularSpring * targetTurn * Time.deltaTime;
             }
-            else
+
+            // Random chance of performing a shooting burst
+            if (!dead && !stunned && !isShootingBurst && Vector2.Dot(transform.up, targetDir) > 0.8f)
             {
-                // If fleeing from the player, accelerate or brake as needed to remain between the flee min and max distances
-                if (targetDis > fleeMinBrakeDistance && targetDis < fleeMaxBrakeDistance)
+                float shootBurstChancePerSecond = isChasing ? chaseShootBurstChancePerSecond : fleeShootBurstChancePerSecond;
+                float shootBurstChancePerFrame = 1 - Mathf.Pow(1 - shootBurstChancePerSecond, Time.deltaTime);
+                if (Random.value < shootBurstChancePerFrame)
                 {
-                    if (velocity.sqrMagnitude > 0.01f)
-                    {
-                        velocity *= Mathf.Clamp01(1 - brakeDamper * Time.deltaTime - brakeDeceleration / velocity.magnitude * Time.deltaTime);
-                    }
-                }
-                else
-                {
-                    velocity += (Vector2)transform.up * acceleration * Time.deltaTime;
-
-                    // Turn away from the target if the ship is too close
-                    if (targetDis < fleeMinBrakeDistance)
-                    {
-                        targetTurn *= -1;
-                    }
+                    StartCoroutine(ShootBurst(Random.Range(shootBurstMin, shootBurstMax + 1)));
                 }
             }
 
-            // Angularly accelerate or decelerate the ship
-            angularVelocity += angularSpring * targetTurn * Time.deltaTime;
+            // Random chance of changing mode from chasing to fleeing or vice versa
+            if (Time.time - lastModeChange >= modeMinimumSeconds)
+            {
+                float modeChangeChancePerFrame = 1 - Mathf.Pow(1 - modeSwitchChancePerSecond, Time.deltaTime);
+                if (Random.value < modeChangeChancePerFrame)
+                {
+                    isChasing = !isChasing;
+                    lastModeChange = Time.time;
+                }
+            }
         }
 
         // Apply drag
@@ -218,28 +243,6 @@ public class EnemySpaceship : Spaceship
 
         // Perform a physics tick
         PhysicsTick(Time.deltaTime);
-
-        // Random chance of performing a shooting burst
-        if (!stunned && !isShootingBurst && Vector2.Dot(transform.up, targetDir) > 0.8f)
-        {
-            float shootBurstChancePerSecond = isChasing ? chaseShootBurstChancePerSecond : fleeShootBurstChancePerSecond;
-            float shootBurstChancePerFrame = 1 - Mathf.Pow(1 - shootBurstChancePerSecond, Time.deltaTime);
-            if (Random.value < shootBurstChancePerFrame)
-            {
-                StartCoroutine(ShootBurst(Random.Range(shootBurstMin, shootBurstMax + 1)));
-            }
-        }
-
-        // Random chance of changing mode from chasing to fleeing or vice versa
-        if (Time.time - lastModeChange >= modeMinimumSeconds)
-        {
-            float modeChangeChancePerFrame = 1 - Mathf.Pow(1 - modeSwitchChancePerSecond, Time.deltaTime);
-            if (Random.value < modeChangeChancePerFrame)
-            {
-                isChasing = !isChasing;
-                lastModeChange = Time.time;
-            }
-        }
     }
 
     /// <summary>
@@ -256,7 +259,7 @@ public class EnemySpaceship : Spaceship
             Shoot();
             yield return new WaitForSeconds(1 / shootRate);
 
-            if (stunned)
+            if (stunned || dead)
             {
                 break;
             }
@@ -311,14 +314,9 @@ public class EnemySpaceship : Spaceship
     /// <param name="normal">World-space normal of the collision (out from the point on this object's collider circle)</param>
     public override void OnObjectCollision(PhysicsObject otherObj, Vector2 point, Vector2 normal)
     {
-        if (otherObj is PlayerSpaceship || otherObj is ShieldController)
+        if (!dead && otherObj is PlayerSpaceship)
         {
             StunFromCollision(normal);
         }
-    }
-
-    protected override void Death()
-    {
-        Destroy(gameObject);
     }
 }

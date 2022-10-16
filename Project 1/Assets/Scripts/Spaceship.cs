@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 // Comments
 
@@ -15,6 +16,11 @@ public class Spaceship : PhysicsObject
 {
     public GameManager gameManager;
 
+    [Header("Score")]
+    public int scorePerDamage;
+
+    public int scoreOnDeath;
+
     /// <summary>
     /// Initial and maximum health of this ship
     /// </summary>
@@ -25,6 +31,10 @@ public class Spaceship : PhysicsObject
     /// Current health of this ship (0 - maxHealth)
     /// </summary>
     public float health;
+
+    public bool dead => health <= 0;
+
+    public GameObject shipExplode;
 
     /// <summary>
     /// Minimum time (in seconds) that this ship is invulnerable to being stunned after the previous stun wears off
@@ -113,21 +123,58 @@ public class Spaceship : PhysicsObject
     /// Damages this ship by the indicated amount of damage, playing the damageParticles and activating the damageFlash
     /// </summary>
     /// <param name="damage">Amount of damage that will be subtracted from this ship's health</param>
-    public void Damage(float damage)
+    /// <returns>Amount of damage done to the ship</returns>
+    public float Damage(float damage)
     {
+        float oldHealth = health;
+
         health -= damage;
         if (health <= 0)
         {
             health = 0;
-            Death();
+            if (oldHealth > 0)
+            {
+                Death();
+            }
         }
+
+        gameManager.AddScore(Mathf.FloorToInt(Mathf.Max(0, oldHealth - health) * scorePerDamage));
 
         damageParticles.Play();
         damageFlash.SetActive(true);
         damageFlashEndTime = Time.time + damageFlashDuration;
+
+        return oldHealth - health;
     }
 
-    protected virtual void Death() { }
+    private void Death()
+    {
+        StartCoroutine(DeathAnimation());
+    }
+
+    private IEnumerator DeathAnimation()
+    {
+        float startTime = Time.time;
+        float duration = 0.6f;
+        while (Time.time - startTime < duration)
+        {
+            float t = (Time.time - startTime) / duration;
+            // Adapted from https://easings.net/#easeInBack
+            float st = 1 - (4 * t * t * t - 3 * t * t);
+
+            transform.localScale = Vector3.one * st;
+            yield return null;
+        }
+
+        Instantiate(shipExplode, transform.position, Quaternion.identity);
+
+        if (scoreOnDeath > 0)
+        {
+            gameManager.AddScoreWithVisualAddition(scoreOnDeath, transform.position);
+        }
+
+        Destroy(gameObject);
+    }
 
     /// <summary>
     /// Attempts to stun this ship and applies the collision stun impulses

@@ -52,7 +52,7 @@ public class SpawnDoor : MonoBehaviour
             EnemySpaceship enemy = Instantiate(enemyPrefab, shipSpawnLocation.position, spawnRot);
             enemy.Stun(shipSpawnStunSeconds);
             enemy.velocity = enemy.transform.up * Random.Range(shipSpawnVelocityMin, shipSpawnVelocityMax);
-            enemy.target = gameManager.enemyTarget;
+            enemy.target = gameManager.playerShip.transform;
             enemy.gameManager = gameManager;
             enemies.Add(enemy);
 

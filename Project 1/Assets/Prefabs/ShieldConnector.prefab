@@ -10217,6 +10217,7 @@ MonoBehaviour:
   circleRadius: 0.5
   velocity: {x: 0, y: 0}
   angularVelocity: 0
+  gameManager: {fileID: 0}
   bulletAttractor: {fileID: 8864127905577543952}
   shieldRenderer: {fileID: 5158157467206184737}
   wireRenderers:
@@ -10226,6 +10227,8 @@ MonoBehaviour:
   healthBar: {fileID: 5523789101184600767}
   damageParticles: {fileID: 5158157467545712814}
   deactivateParticles: {fileID: 5158157466744123653}
+  scorePerDamage: 2
+  scoreOnDestroy: 100
   maxHealth: 50
   health: 50
   shieldDeactivatedColor: {r: 0.2, g: 0.11666667, b: 0.1, a: 1}

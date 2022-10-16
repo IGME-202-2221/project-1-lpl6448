@@ -1,12 +1,16 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// Comments
+
 /// <summary>
 /// Controller script for a player's spaceship, which uses player input to move the spaceship and shoot.
 /// Author: Luke Lepkowski (lpl6448@rit.edu)
 /// </summary>
 public class PlayerSpaceship : Spaceship
 {
+    public UIHealthBar uiHealthBar;
+
     /// <summary>
     /// The ship's forward acceleration (units/s^2)
     /// </summary>
@@ -42,6 +46,10 @@ public class PlayerSpaceship : Spaceship
     /// When braking, the amount of deceleration of the ship (units/s^2)
     /// </summary>
     public float brakeDeceleration;
+
+    public float brakeAngularDamper;
+
+    public float brakeAngularDeceleration;
 
     /// <summary>
     /// When braking, the max speed at which the ship's velocity will align itself with the forward direction (degrees/s^2)
@@ -113,6 +121,11 @@ public class PlayerSpaceship : Spaceship
         physicsWorld.AddObject(this);
     }
 
+    private void OnDestroy()
+    {
+        physicsWorld.RemoveObject(this);
+    }
+
     /// <summary>
     /// The Update function runs a physics simulation, taking into account user input to move
     /// the ship and update its position and rotation on the screen.
@@ -120,6 +133,7 @@ public class PlayerSpaceship : Spaceship
     private void Update()
     {
         UpdateFlashes();
+        uiHealthBar.fillAmount = health / maxHealth;
 
         // If stunned, ignore any player input
         Vector2 currentMovementInput = !stunned ? rawMovementInput : Vector2.zero;
@@ -135,6 +149,7 @@ public class PlayerSpaceship : Spaceship
         if (isBraking)
         {
             angularVelocity += brakingTurnAcceleration * velocity.magnitude * -currentMovementInput.x * Time.deltaTime;
+            angularVelocity *= Mathf.Clamp01(1 - brakeAngularDamper * Time.deltaTime - brakeAngularDeceleration / angularVelocity * Time.deltaTime);
         }
 
         // Apply angular drag
@@ -215,12 +230,12 @@ public class PlayerSpaceship : Spaceship
     /// <param name="normal">World-space normal of the collision (out from the point on this object's collider circle)</param>
     public override void OnWallCollision(Vector2 point, Vector2 normal)
     {
-        // If the ship is outside the bounds and is moving back toward the game area, we don't need to teleport it
+        // Correct the ship's position to the edge of the wall
+        transform.position = (Vector3)(point + normal * worldCircleRadius - worldCircleCenter) + transform.position;
+
+        // If the ship is outside the bounds and is moving back toward the game area, we don't need to bounce
         if (Vector2.Dot(velocity, normal) < 0)
         {
-            // Correct the ship's position to the edge of the wall
-            transform.position = (Vector3)(point + normal * worldCircleRadius - worldCircleCenter) + transform.position;
-
             // Bounce the ship off the wall
             velocity = Vector2.Reflect(velocity, -normal);
             float speedRelativeToNormal = -Vector2.Dot(velocity, normal);

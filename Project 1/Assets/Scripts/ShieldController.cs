@@ -2,6 +2,8 @@
 
 public class ShieldController : PhysicsObject
 {
+    public GameManager gameManager;
+
     public ShieldBulletAttractor bulletAttractor;
 
     public SpriteRenderer shieldRenderer;
@@ -13,6 +15,10 @@ public class ShieldController : PhysicsObject
     public ParticleSystem damageParticles;
 
     public ParticleSystem deactivateParticles;
+
+    public int scorePerDamage;
+
+    public int scoreOnDestroy;
 
     public float maxHealth;
 
@@ -29,7 +35,7 @@ public class ShieldController : PhysicsObject
         healthBar.fillAmount = health / maxHealth;
     }
 
-    public void Damage(float damage)
+    public float Damage(float damage)
     {
         float oldHealth = health;
 
@@ -47,19 +53,25 @@ public class ShieldController : PhysicsObject
                 healthBar.fillAmount = health / maxHealth;
                 damageParticles.Play();
             }
+
+            gameManager.AddScore(Mathf.FloorToInt(Mathf.Max(0, oldHealth - health) * scorePerDamage));
         }
+
+        return oldHealth - health;
     }
 
     public override void OnObjectCollision(PhysicsObject otherObj, Vector2 point, Vector2 normal)
     {
-        if (otherObj is PlayerSpaceship && health > 0)
+        if (otherObj is Spaceship && health > 0)
         {
-            (otherObj as PlayerSpaceship).StunFromCollision(-normal);
+            (otherObj as Spaceship).StunFromCollision(-normal);
         }
     }
 
     private void Deactivate()
     {
+        gameManager.AddScoreWithVisualAddition(scoreOnDestroy, transform.position);
+
         bulletAttractor.Deactivate();
 
         shieldRenderer.color = shieldDeactivatedColor;

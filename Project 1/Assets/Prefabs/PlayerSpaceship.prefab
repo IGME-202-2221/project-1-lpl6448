@@ -6202,8 +6202,10 @@ MonoBehaviour:
   circleRadius: 0.5
   velocity: {x: 0, y: 0}
   angularVelocity: 0
-  maxHealth: 100
-  health: 0
+  gameManager: {fileID: 0}
+  maxHealth: 25
+  health: 25
+  shipExplode: {fileID: 8529622927714451442, guid: fe3a55afab83de44490acfc4ad8a24b7, type: 3}
   stunCooldown: 1
   stunFlash: {fileID: 7339817684135425937}
   damageFlash: {fileID: 4972250096145752546}
@@ -6219,6 +6221,8 @@ MonoBehaviour:
   angularDrag: 0.04
   brakeDamper: 0.5
   brakeDeceleration: 1
+  brakeAngularDamper: 0
+  brakeAngularDeceleration: 360
   brakingTurnToVelocity: 120
   brakingTurnAcceleration: 210
   wallBounceCoefficient: 0.33333334

@@ -97,9 +97,12 @@ public class Bullet : PhysicsObject
             else if (otherObj is ShieldController)
             {
                 ShieldController shieldController = otherObj as ShieldController;
-                shieldController.Damage(hitDamage);
+                float damage = shieldController.Damage(hitDamage);
 
-                Destroy(gameObject);
+                if (damage > 0)
+                {
+                    Destroy(gameObject);
+                }
             }
             else
             {
@@ -115,8 +118,7 @@ public class Bullet : PhysicsObject
     private void Explode(Vector2 point)
     {
         // Instantiate bullet explosion effect
-        GameObject explodeObj = Instantiate(bulletExplode);
-        explodeObj.transform.position = point;
+        Instantiate(bulletExplode, point, Quaternion.identity);
 
         // Destroy this bullet
         Destroy(gameObject);

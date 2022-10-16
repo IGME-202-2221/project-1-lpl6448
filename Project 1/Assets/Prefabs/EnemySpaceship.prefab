@@ -5886,8 +5886,12 @@ MonoBehaviour:
   circleRadius: 0.546875
   velocity: {x: 0, y: 0}
   angularVelocity: 0
+  gameManager: {fileID: 0}
+  scorePerDamage: 1
+  scoreOnDeath: 15
   maxHealth: 10
   health: 10
+  shipExplode: {fileID: 2582839538583361750, guid: 21ed142e41a3ffd459bf11bb5a595f3b, type: 3}
   stunCooldown: 0
   stunFlash: {fileID: 859189621162550205}
   damageFlash: {fileID: 5585404036237752269}
