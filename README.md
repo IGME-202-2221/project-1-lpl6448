@@ -7,10 +7,10 @@
 
 ## Game Design
 
--   Camera Orientation: Topdown
+-   Camera Orientation: Top-Down
 -   Camera Movement: The camera is fixed for the most part but can vertically follow the player as a transition between levels. This also means that the player "bounces off" the edges of the screen.
 -   Player Health: Health Bar
--   End Condition: The level ends when the player destroys the two shield stations (removing the barrier) and moves to the next level. The game ends once the player has made it past all of the enemy shields.
+-   End Condition: The level ends when the player destroys the two shield stations (removing the barrier) and moves to the next level. The game ends once the player has made it past all of the enemy shields and out of the prison.
 -   Scoring: The player earns points for doing damage and earns a certain number of points for destroying each type of enemy.
 
 ### Game Description
@@ -18,9 +18,11 @@
 After waking up to find you and your spaceship trapped in a bizarre alien prison, the only way out now is to fight. Shoot at enemy ships, dodge bullets and lasers, and destroy the shield stations keeping you trapped as you progress toward the freedom of open space.
 
 ### Enemy Types
+
 -   Enforcer: a skittish robot ship that often prefers to shoot from a distance (shoots 6 bullets per second)
 -   Large Enforcer: a larger, more powerful Enforcer that shoots more bullets (shoots 8 bullets per second)
 -   Boulder: a sentient space boulder that occasionally shoots out asteroid fragments in different directions
+    -   Be careful! It shoots out more fragments when being attacked.
 
 ### Controls
 
@@ -53,3 +55,4 @@ After waking up to find you and your spaceship trapped in a bizarre alien prison
 
 ### Requirements not completed
 
+-   All requirements were completed.
