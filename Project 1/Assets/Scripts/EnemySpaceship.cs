@@ -1,6 +1,11 @@
 ﻿using UnityEngine;
 
-public class EnemySpaceship : Spaceship
+/// <summary>
+/// Superclass of all enemy spaceships in the game, containing a target/following Transform reference
+/// and some initialization code for enemy-specific logic in the GameManager.
+/// Author: Luke Lepkowski (lpl6448@rit.edu)
+/// </summary>
+public abstract class EnemySpaceship : Spaceship
 {
     /// <summary>
     /// Transform that this ship will follow and shoot at
@@ -8,7 +13,7 @@ public class EnemySpaceship : Spaceship
     public Transform target;
 
     /// <summary>
-    /// When the game starts, add this spaceship to the game world's list of enemies and to the collision world
+    /// When this enemy is created, add this spaceship to the game world's list of enemies and to the collision world
     /// </summary>
     private void Start()
     {
@@ -16,6 +21,9 @@ public class EnemySpaceship : Spaceship
         gameManager.physicsWorld.AddObject(this);
     }
 
+    /// <summary>
+    /// When this enemy is destroyed/killed, remove it from the game world and from the collision world
+    /// </summary>
     private void OnDestroy()
     {
         gameManager.RemoveEnemy(this);

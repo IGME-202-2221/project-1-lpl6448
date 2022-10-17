@@ -2,14 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 
-// Comments
-
 /// <summary>
 /// Controller script for an enemy spaceship, which uses an AI to move the spaceship and shoot at a target.
 /// Author: Luke Lepkowski (lpl6448@rit.edu)
 /// </summary>
 public class EnforcerSpaceship : EnemySpaceship
 {
+    /// <summary>
+    /// Reference to this ship's circular health bar
+    /// </summary>
     public CircularHealthBar healthBar;
 
     /// <summary>

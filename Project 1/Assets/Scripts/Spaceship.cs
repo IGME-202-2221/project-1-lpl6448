@@ -1,24 +1,27 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-// Comments
-
 /// <summary>
 /// Superclass for all spaceships in the game, containing common information such as
 /// health, stun information and effects, and damage effects.
-/// 
-/// NOTE: I'm planning to move many common behaviors from PlayerSpaceship and EnemySpaceship
-/// into this class in the future, but right now it only contains health/stun/damage.
-/// 
 /// Author: Luke Lepkowski (lpl6448@rit.edu)
 /// </summary>
-public class Spaceship : PhysicsObject
+public abstract class Spaceship : PhysicsObject
 {
+    /// <summary>
+    /// Reference to the GameManager, used for awarding score
+    /// </summary>
     public GameManager gameManager;
 
+    /// <summary>
+    /// Amount of score added for each health point of damage taken on this ship
+    /// </summary>
     [Header("Score")]
     public int scorePerDamage;
 
+    /// <summary>
+    /// Amount of score added when this ship is destroyed
+    /// </summary>
     public int scoreOnDeath;
 
     /// <summary>
@@ -32,12 +35,24 @@ public class Spaceship : PhysicsObject
     /// </summary>
     public float health;
 
+    /// <summary>
+    /// Whether this ship is "dead" (has 0 health) or not
+    /// </summary>
     public bool dead => health <= 0;
 
+    /// <summary>
+    /// Prefab that is instantiated at the end of this ship's death animation
+    /// </summary>
     public GameObject shipExplode;
 
+    /// <summary>
+    /// Whether this ship is affected by impulses (from bullets) or not
+    /// </summary>
     public bool canHaveImpulse = true;
 
+    /// <summary>
+    /// Whether this ship can be stunned by collisions and bullets
+    /// </summary>
     public bool canBeStunned = true;
 
     /// <summary>
@@ -123,6 +138,10 @@ public class Spaceship : PhysicsObject
         }
     }
 
+    /// <summary>
+    /// Knocks this ship back by the impulse, requires canHaveImpulse to be true
+    /// </summary>
+    /// <param name="impulse">Vector2 added to the velocity if this ship is affected by impulses</param>
     public virtual void Impulse(Vector2 impulse)
     {
         if (canHaveImpulse)
@@ -159,11 +178,19 @@ public class Spaceship : PhysicsObject
         return oldHealth - health;
     }
 
+    /// <summary>
+    /// When this ship dies, begin the death animation
+    /// </summary>
     private void Death()
     {
         StartCoroutine(DeathAnimation());
     }
 
+    /// <summary>
+    /// Runs a death animation that inflates and then shrinks the ship before finally
+    /// instantiating the shipExplode effect, awarding score, and destroying this ship
+    /// </summary>
+    /// <returns>IEnumerator for the Unity coroutine</returns>
     private IEnumerator DeathAnimation()
     {
         Vector3 startScale = transform.localScale;

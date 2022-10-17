@@ -1,14 +1,32 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Controller script for the Boulder, which uses an AI to move the boulder/asteroid randomly
+/// around the map and to shoot occasional asteroid shards in random directions.
+/// Author: Luke Lepkowski (lpl6448@rit.edu)
+/// </summary>
 public class BoulderSpaceship : EnemySpaceship
 {
+    /// <summary>
+    /// Reference to the ship's circular health bar
+    /// </summary>
     public CircularHealthBar healthBar;
 
+    /// <summary>
+    /// The acceleration (units/s^2) of this ship
+    /// </summary>
     [Header("Physics")]
     public float acceleration;
 
+    /// <summary>
+    /// The maximum angular acceleration (degrees/s^2) of this ship
+    /// </summary>
     public float angularAcceleration;
 
+    /// <summary>
+    /// The timestep (or value that Time.time is multiplied by) in the angular acceleration noise
+    /// (to make the boulder randomly turn back and forth)
+    /// </summary>
     public float angularAccelerationTimestep;
 
     /// <summary>
@@ -32,12 +50,24 @@ public class BoulderSpaceship : EnemySpaceship
     [Header("Shooting")]
     public Bullet bulletPrefab;
 
+    /// <summary>
+    /// Probability (0-1) per second that this ship shoots a bunch of bullets
+    /// </summary>
     public float shootChancePerSecond;
 
+    /// <summary>
+    /// Minimum (inclusive) number of bullets shot in one burst
+    /// </summary>
     public int minBulletsShot;
 
+    /// <summary>
+    /// Maximum (inclusive) number of bullets shot in one burst
+    /// </summary>
     public int maxBulletsShot;
 
+    /// <summary>
+    /// The amount of damage that this ship must take before it shoots a bunch of bullets
+    /// </summary>
     public float damagePerShoot;
 
     /// <summary>
@@ -45,21 +75,41 @@ public class BoulderSpaceship : EnemySpaceship
     /// </summary>
     public float shootRecoil;
 
+    /// <summary>
+    /// Probability (0-1) per second that the boulder begins to move in a different direction
+    /// </summary>
     [Header("AI")]
     public float moveDirSwitchChancePerSecond;
 
+    /// <summary>
+    /// Current direction that this boulder is aiming to move in
+    /// </summary>
     private Vector2 moveDir;
 
+    /// <summary>
+    /// Vertical noise offset in Perlin noise to make each boulder rotate at different speeds and in different directions
+    /// </summary>
     private float angularAccelerationNoiseOffset;
 
+    /// <summary>
+    /// Amount of damage this boulder has taken since the last shot burst, used to make the boulder shoot
+    /// out more fragments while taking damage
+    /// </summary>
     private float accumulatedDamage = 0;
 
+    /// <summary>
+    /// At initialization, set the angular acceleration noise offset and initialize the move direction
+    /// </summary>
     private void Awake()
     {
         angularAccelerationNoiseOffset = Random.value * 100 - 50;
         ChangeMoveDirection();
     }
 
+    /// <summary>
+    /// Every frame, accelerate this ship in moveDir, occasionally shoot out asteroid fragments,
+    /// and perform a physics tick.
+    /// </summary>
     private void Update()
     {
         UpdateFlashes();
@@ -99,12 +149,19 @@ public class BoulderSpaceship : EnemySpaceship
         PhysicsTick(Time.deltaTime);
     }
 
+    /// <summary>
+    /// Changes moveDir to a new random direction, causing the boulder to move in a different direction
+    /// </summary>
     private void ChangeMoveDirection()
     {
         float moveDirRad = Random.value * Mathf.PI * 2;
         moveDir = new Vector2(Mathf.Cos(moveDirRad), Mathf.Sin(moveDirRad));
     }
 
+    /// <summary>
+    /// Shoots the given number of bullets/fragments, each in a random direction
+    /// </summary>
+    /// <param name="count">Number of bullets/fragments to shoot</param>
     private void Shoot(int count)
     {
         for (int i = 0; i < count; i++)
@@ -122,15 +179,22 @@ public class BoulderSpaceship : EnemySpaceship
         }
     }
 
+    /// <summary>
+    /// Damages this ship by the indicated amount of damage, playing the damageParticles and activating the damageFlash.
+    /// The boulder also shoots bullets/fragments when taking damage.
+    /// </summary>
+    /// <param name="damage">Amount of damage that will be subtracted from this ship's health</param>
+    /// <returns>Amount of damage done to the ship</returns>
     public override float Damage(float damage)
     {
-        damage = Mathf.Min(damage, health);
-
-        accumulatedDamage += damage;
-        while (accumulatedDamage > damagePerShoot)
+        if (health > damage)
         {
-            accumulatedDamage -= damagePerShoot;
-            Shoot(Random.Range(minBulletsShot, maxBulletsShot + 1));
+            accumulatedDamage += damage;
+            while (accumulatedDamage > damagePerShoot)
+            {
+                accumulatedDamage -= damagePerShoot;
+                Shoot(Random.Range(minBulletsShot, maxBulletsShot + 1));
+            }
         }
 
         return base.Damage(damage);

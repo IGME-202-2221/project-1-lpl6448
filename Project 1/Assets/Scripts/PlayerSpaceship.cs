@@ -1,15 +1,21 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Comments
-
 /// <summary>
 /// Controller script for a player's spaceship, which uses player input to move the spaceship and shoot.
 /// Author: Luke Lepkowski (lpl6448@rit.edu)
 /// </summary>
 public class PlayerSpaceship : Spaceship
 {
+    /// <summary>
+    /// Reference to the player health bar (part of the UI)
+    /// </summary>
     public UIHealthBar uiHealthBar;
+
+    /// <summary>
+    /// Whether the player is currently invincible (whether they are immune to damage)
+    /// </summary>
+    public bool invincible = false;
 
     /// <summary>
     /// The ship's forward acceleration (units/s^2)
@@ -43,12 +49,18 @@ public class PlayerSpaceship : Spaceship
     public float brakeDamper;
 
     /// <summary>
-    /// When braking, the amount of deceleration of the ship (units/s^2)
+    /// When braking, the amount of deceleration on the ship's velocity (units/s^2)
     /// </summary>
     public float brakeDeceleration;
 
+    /// <summary>
+    /// When braking, the damper put on the ship's angular velocity
+    /// </summary>
     public float brakeAngularDamper;
 
+    /// <summary>
+    /// When braking, the amount of deceleration on the ship's angular velocity (degrees/s^2)
+    /// </summary>
     public float brakeAngularDeceleration;
 
     /// <summary>
@@ -121,6 +133,9 @@ public class PlayerSpaceship : Spaceship
         physicsWorld.AddObject(this);
     }
 
+    /// <summary>
+    /// When this ship is destroyed, remove this ship from the physics simulation
+    /// </summary>
     private void OnDestroy()
     {
         physicsWorld.RemoveObject(this);
@@ -221,6 +236,21 @@ public class PlayerSpaceship : Spaceship
         velocity -= (Vector2)transform.up * shootRecoil;
 
         lastShootTime = Time.time;
+    }
+
+    /// <summary>
+    /// Damages this ship by the indicated amount of damage, playing the damageParticles and activating the damageFlash.
+    /// This is overridden in PlayerSpaceship to allow for invincibility.
+    /// </summary>
+    /// <param name="damage">Amount of damage that will be subtracted from this ship's health</param>
+    /// <returns>Amount of damage done to the ship</returns>
+    public override float Damage(float damage)
+    {
+        if (!invincible)
+        {
+            return base.Damage(damage);
+        }
+        return 0;
     }
 
     /// <summary>
