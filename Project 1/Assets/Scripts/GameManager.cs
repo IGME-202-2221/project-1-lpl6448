@@ -287,7 +287,7 @@ public class GameManager : MonoBehaviour
         // Destroy any remaining enemies
         foreach (EnemySpaceship enemy in activeEnemies)
         {
-            enemy.Damage(10000);
+            enemy.Damage(10000, false);
         }
 
         // Regen the player

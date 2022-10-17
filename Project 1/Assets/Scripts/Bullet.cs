@@ -88,7 +88,7 @@ public class Bullet : PhysicsObject
             if (otherObj is Spaceship && otherObj != Origin)
             {
                 Spaceship spaceship = otherObj as Spaceship;
-                spaceship.Damage(hitDamage);
+                spaceship.Damage(hitDamage, true);
                 spaceship.Stun(hitStunTime);
                 spaceship.Impulse(velocity.normalized * hitImpulse);
 

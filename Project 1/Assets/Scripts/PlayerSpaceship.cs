@@ -243,12 +243,13 @@ public class PlayerSpaceship : Spaceship
     /// This is overridden in PlayerSpaceship to allow for invincibility.
     /// </summary>
     /// <param name="damage">Amount of damage that will be subtracted from this ship's health</param>
+    /// <param name="addScore">Whether score should be added for this damage</param>
     /// <returns>Amount of damage done to the ship</returns>
-    public override float Damage(float damage)
+    public override float Damage(float damage, bool addScore)
     {
         if (!invincible)
         {
-            return base.Damage(damage);
+            return base.Damage(damage, addScore);
         }
         return 0;
     }

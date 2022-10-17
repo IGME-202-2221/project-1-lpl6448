@@ -154,8 +154,9 @@ public abstract class Spaceship : PhysicsObject
     /// Damages this ship by the indicated amount of damage, playing the damageParticles and activating the damageFlash
     /// </summary>
     /// <param name="damage">Amount of damage that will be subtracted from this ship's health</param>
+    /// <param name="addScore">Whether score should be added for this damage</param>
     /// <returns>Amount of damage done to the ship</returns>
-    public virtual float Damage(float damage)
+    public virtual float Damage(float damage, bool addScore)
     {
         float oldHealth = health;
 
@@ -169,7 +170,10 @@ public abstract class Spaceship : PhysicsObject
             }
         }
 
-        gameManager.AddScore(Mathf.FloorToInt(Mathf.Max(0, oldHealth - health) * scorePerDamage));
+        if (addScore)
+        {
+            gameManager.AddScore(Mathf.FloorToInt(Mathf.Max(0, oldHealth - health) * scorePerDamage));
+        }
 
         damageParticles.Play();
         damageFlash.SetActive(true);
